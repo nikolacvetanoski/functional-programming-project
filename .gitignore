@@ -1,0 +1,4 @@
+*:Zone.Identifier
+*.hi
+*.o
+__pycache__/
