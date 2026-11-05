@@ -16,6 +16,10 @@ my_heads = foldr (\x result -> ([]:(map (x :) result))) [[]]
 splits :: [a] -> [([a], [a])]
 splits xs = zip (my_heads xs) (my_tails xs)
 
+-- splits:: [a] -> [([a], [a])]
+-- splits xs =
+--     [splitAt i xs | i <- [0 .. length xs]]
+
 {-
 
 type Atm = String
