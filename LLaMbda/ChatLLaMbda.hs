@@ -27,13 +27,12 @@ mapM_ f (x:xs) = do
 -- (This will make it easier to look up words in the lexicon.)
 stdize (c:cs) = toUpper c : map toLower cs
 
-toPython_helper :: [(Var, PythonCode)] -> Int -> LExp
-                -> Maybe PythonCode
+toPython_helper :: [(Var, PythonCode)] -> Int -> LExp -> Maybe PythonCode
 
 toPython_helper [] i (V x) = Nothing
 
-toPython_helper ((name, meaning):rest) i (V x)
-  | x == name = Just meaning
+toPython_helper ((name, translation):rest) i (V x)
+  | x == name = Just translation
   | otherwise = toPython_helper rest i (V x)
 
 toPython_helper meanings i (A e1 e2) = do
@@ -43,11 +42,12 @@ toPython_helper meanings i (A e1 e2) = do
   return (PCode ("(" ++ text functionCode ++ ")("++ text argumentCode ++ ")"))
 
 toPython_helper meanings i (L x e) = do
-
   bodyCode <- toPython_helper ((x, PCode name) : meanings) (i + 1) e
 
   return (PCode ("(lambda " ++ name ++ ": " ++ text bodyCode ++ ")" ) )
-    where name = "__arg__" ++ show i
+    where name = "arg" ++ show i
+
+-- in the last case it is not really a meeting rather just a translation
 
 toPython :: [(Var, PythonCode)] -> LExp -> Maybe PythonCode
 toPython meanings expression = toPython_helper meanings 0 expression
@@ -56,12 +56,9 @@ evaluateMeaning :: PythonHandle -> LExp -> [(Var, PythonCode)] -> IO String
 evaluateMeaning phandle expression meanings =
   case toPython meanings expression of
 
-    Nothing ->
-      return "Could not interpret the expression: missing variable meaning."
+    Nothing -> return "Could not interpret the expression: missing variable meaning."
 
-    Just code ->
-      runPythonCode phandle
-        (PCode ("print(" ++ text code ++ ")"))
+    Just code -> runPythonCode phandle (PCode ("print(" ++ text code ++ ")"))
 
 printReadings :: PythonHandle -> [(LExp, [(Var, PythonCode)])] -> IO ()
 
@@ -85,7 +82,7 @@ repl elx phandle = do
   let ws = map stdize $ words line
   -- test if the string of words is a grammatical sentence according to the lexicon
   case Lambek.derivations elx ws of
-    [] -> putStrLn "That not is a well-formed sentence!"
+    [] -> putStrLn "That is not a well-formed sentence!"
 
     [(expression, meanings)] -> do
       result <- evaluateMeaning phandle expression meanings

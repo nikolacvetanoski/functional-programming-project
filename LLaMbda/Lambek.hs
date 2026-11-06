@@ -100,5 +100,5 @@ derivations_helper lex p (w:ws) i = [(expression, meanings) | (word, a, word_mea
 -- here meanings 
 
 derivations :: Lexicon sem -> [String] -> [(LExp, [(Var, sem)])]
-derivations lex ws = derivations_helper lex (stp lex) ws 1
+derivations lex ws = derivations_helper lex (stp lex) ws 0
 
