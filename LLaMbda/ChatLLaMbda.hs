@@ -130,10 +130,8 @@ evaluateSentence elx phandle ws =
       result <- evaluateMeaning phandle expression meanings
       putStrLn result
 
-    alternatives -> do
-      putStrLn "That sentence is ambiguous"
-      printReadings phandle alternatives
-
+    alternatives ->
+      handle_ambiguity phandle alternatives
 
 main = do
   -- send console output immediately to the user
