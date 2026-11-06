@@ -1,0 +1,12 @@
+
+SENTENCE : s.
+
+Alice    : np = 'Alice'.
+Bob      : np = 'Bob'.
+Charlie  : np = 'Charlie'.
+
+Studies  : np \ s = lambda x : x in study.
+Teaches  : np \ (s / np) = lambda x : lambda y : (x,y) in teach.
+
+Is       : np \ (s / adj) = lambda x : lambda p : p(x).
+Tired    : adj = lambda x : x in tired.
