@@ -8,24 +8,27 @@ import qualified Lambek
 import Parser
 import PySupport
 import LExp
-
-{-
-Definition of mapM_ from the prelude, notice that unlike map or mapM it discards elements hence good for printing
-
-mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
-mapM_ f [] = return ()
-mapM_ f (x:xs) = do
-  f x
-  mapM_ f xs
-
-
-
--}
+import Ambiguity
 
 -- "standardize" the capitalization of a word by making the first
 -- letter uppercase and the following letters lowercase.
 -- (This will make it easier to look up words in the lexicon.)
 stdize (c:cs) = toUpper c : map toLower cs
+
+handle_ambiguity :: PythonHandle -> [(LExp, [(Var, PythonCode)])] -> IO ()
+handle_ambiguity phandle alternatives = 
+  case unique_derivations alternatives of
+    [] -> return ()
+
+    [(expression, meanings)] -> do
+      result <- evaluateMeaning phandle expression meanings
+      putStrLn result
+
+    derivations -> do
+      putStrLn "That input is ambiguous"
+      printReadings phandle derivations
+
+
 
 toPython_helper :: [(Var, PythonCode)] -> Int -> LExp -> Maybe PythonCode
 
@@ -46,8 +49,6 @@ toPython_helper meanings i (L x e) = do
 
   return (PCode ("(lambda " ++ name ++ ": " ++ text bodyCode ++ ")" ) )
     where name = "arg" ++ show i
-
--- in the last case it is not really a meeting rather just a translation
 
 toPython :: [(Var, PythonCode)] -> LExp -> Maybe PythonCode
 toPython meanings expression = toPython_helper meanings 0 expression
@@ -80,7 +81,7 @@ repl elx phandle = do
   line <- getLine
   -- split it up into "standardized" words
   let ws = map stdize $ words line
-  -- test if the string of words is a grammatical sentence according to the lexicon
+  -- test if the string of words is a grammatical sentence or a question according to the lexicon
   case Lambek.new_derivations elx ws of
     [] -> putStrLn "That is not a well-formed sentence or a question!"
 
@@ -89,8 +90,7 @@ repl elx phandle = do
       putStrLn result
 
     alternatives -> do
-      putStrLn "That sentence is ambiguous"
-      printReadings phandle alternatives
+      handle_ambiguity phandle alternatives
 
   repl elx phandle
       
