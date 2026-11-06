@@ -88,10 +88,11 @@ der_lfoc gammaL (Atm q) gammaR p = if null gammaL && null gammaR && q == p
                                     else []
 
 
-derivations_helper :: Lexicon sem -> LTp -> [String] -> Int -> [LExp]
-derivations_helper lex p [] i = der_rinv [] p
-derivations_helper lex p (w:ws) i = [normalize (A e(V (w ++ "_" ++ show i))) | a <- possible_types lex w, e <- derivations_helper lex (DivL a p) ws (i+1) ] 
+derivations_helper :: Lexicon sem -> LTp -> [String] -> Int -> [(LExp, [(Var, sem)])]
+derivations_helper lex p [] i = [(e,[]) | e <- der_rinv [] p ]
+derivations_helper lex p (w:ws) i = [(normalize (A e(V (name))), (name, meaning): meanings) | (word, a, meaning) <- items lex, word == w,  (e, meanings) <- derivations_helper lex (DivL a p) ws (i+1) ] 
+                                        where name = w ++ "_" ++ show i
 
-derivations :: Lexicon sem -> [String] -> [LExp]
+derivations :: Lexicon sem -> [String] -> [(LExp, [(Var, sem)])]
 derivations lex ws = derivations_helper lex (stp lex) ws 1
 
