@@ -81,8 +81,8 @@ repl elx phandle = do
   -- split it up into "standardized" words
   let ws = map stdize $ words line
   -- test if the string of words is a grammatical sentence according to the lexicon
-  case Lambek.derivations elx ws of
-    [] -> putStrLn "That is not a well-formed sentence!"
+  case Lambek.new_derivations elx ws of
+    [] -> putStrLn "That is not a well-formed sentence or a question!"
 
     [(expression, meanings)] -> do
       result <- evaluateMeaning phandle expression meanings

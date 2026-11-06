@@ -2,8 +2,6 @@
 
 module Lambek where
 
---what does the where mean above?
-
 import LTypes
 import LExp
 
@@ -19,25 +17,6 @@ splits xs = zip (my_heads xs) (my_tails xs)
 -- splits:: [a] -> [([a], [a])]
 -- splits xs =
 --     [splitAt i xs | i <- [0 .. length xs]]
-
-{-
-
-type Atm = String
-data LTp = Atm Atm | DivL LTp LTp | DivR LTp LTp
-
-The above come from LTypes hence we can remove them
-
-Notice that DivR a b is really A / B
-
-a possible implementation of the list or
-
-or:: [Bool] -> Bool
-or = foldr (||) False
-
-null []    = True
-null (_:_) = False
-
--}
 
 dec_rinv :: [LTp] -> LTp -> Bool
 --- when dealing with A\B you are actually dealing with
@@ -101,4 +80,7 @@ derivations_helper lex p (w:ws) i = [(expression, meanings) | (word, a, word_mea
 
 derivations :: Lexicon sem -> [String] -> [(LExp, [(Var, sem)])]
 derivations lex ws = derivations_helper lex (stp lex) ws 0
+
+new_derivations :: Lexicon sem -> [String] -> [(LExp, [(Var, sem)])]
+new_derivations lex ws = derivations lex ws ++ derivations_helper lex (Atm "q") ws 0
 
