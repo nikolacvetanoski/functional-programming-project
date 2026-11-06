@@ -1,4 +1,3 @@
-
 students = {'Alice', 'Bob', 'Charlie'}
 
 study = {'Alice', 'Bob'}
