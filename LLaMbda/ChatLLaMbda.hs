@@ -72,28 +72,69 @@ printReadings phandle ((expression, meanings):rest) = do
 
   printReadings phandle rest
 
+
+
+
+-- Convert simple yes/no questions into statements
+questionToStatement :: [String] -> Maybe [String]
+
+questionToStatement ["Does", person, "Study?"] =
+    Just [person, "Studies"]
+
+questionToStatement ["Does", person, "Teach", object] =
+    if not (null object) && last object == '?'
+    then Just [person, "Teaches", init object]
+    else Nothing
+
+questionToStatement ["Is", person, "Tired?"] =
+    Just [person, "Is", "Tired"]
+
+questionToStatement _ = Nothing
+
+
 -- read-eval-print-loop
+
+-- Read-eval-print-loop
 repl :: Lexicon PythonCode -> PythonHandle -> IO ()
 repl elx phandle = do
-  -- print the prompt
+
   putStr "> "
-  -- get a line of input
   line <- getLine
-  -- split it up into "standardized" words
-  let ws = map stdize $ words line
-  -- test if the string of words is a grammatical sentence or a question according to the lexicon
+
+  let ws = map stdize (words line)
+
+  case questionToStatement ws of
+
+    Just statement -> do
+      putStrLn "Interpreting question:"
+      evaluateSentence elx phandle statement
+
+    Nothing ->
+      evaluateSentence elx phandle ws
+
+  repl elx phandle
+
+
+evaluateSentence :: Lexicon PythonCode
+                 -> PythonHandle
+                 -> [String]
+                 -> IO ()
+
+evaluateSentence elx phandle ws =
   case Lambek.new_derivations elx ws of
-    [] -> putStrLn "That is not a well-formed sentence or a question!"
+
+    [] ->
+      putStrLn "That is not a well-formed sentence!"
 
     [(expression, meanings)] -> do
       result <- evaluateMeaning phandle expression meanings
       putStrLn result
 
     alternatives -> do
-      handle_ambiguity phandle alternatives
+      putStrLn "That sentence is ambiguous"
+      printReadings phandle alternatives
 
-  repl elx phandle
-      
+
 main = do
   -- send console output immediately to the user
   hSetBuffering stdout NoBuffering
